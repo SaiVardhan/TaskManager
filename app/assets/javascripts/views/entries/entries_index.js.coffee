@@ -4,25 +4,42 @@ class TaskManager.Views.EntriesIndex extends Backbone.View
 
   events:
     'submit #new_entry': 'createEntry'
+    'click #draw_winner': 'drawWinner'
 
   initialize: ->
     @collection.on('reset', @render, this)
-    #@collection.fetch()
     @collection.on('add', @appendEntry, this)
 
   render: ->
-    $(@el).html(@template())
+    $(@el).html(@template)
     @collection.each(@appendEntry)
     this
 
-  appendEntry: (entry)->
-    view = new TaskManager.Views.Entry()
-    #view = new TaskManager.Views.Entry(model: entry)
+  appendEntry: (entry) ->
+    view = new TaskManager.Views.Entry(model: entry)
     $('#entries').append(view.render().el)
 
-  createEntry: (event)->
+  createEntry: (event) ->
     event.preventDefault()
-    @collection.create name: $('#new_entry_name').val()
+    attributes = name: $('#new_entry_name').val()
+    @collection.create attributes,
+      wait: true
+      success: -> $('#new_entry')[0].reset()
+      error: @handleError
+
+  handleError: (entry,response) ->
+    if response.status = 422
+      errors = $.parseJSON(response.responseText).errors
+      for attribute,messages of errors
+        alert "#{attribute} #{message}" for message in messages
+
+  drawWinner: (event) ->
+    event.preventDefault()
+    @collection.drawWinner()
+
+
+
+    
 
 
     
